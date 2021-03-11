@@ -47,10 +47,6 @@ public class FactionCommands implements CommandExecutor {
 						player.sendMessage("	invite <name>: invite player with name <name> to your faction.");
 					}
 				}
-				
-				
-				
-				player.sendMessage("	invite <player>: invite player with name <player>.");
 
 			} else if (args.length == 1) { // Faction command has one argument (leave)
 				if (args[0].equalsIgnoreCase("leave")) { // Player wants to leave their faction
