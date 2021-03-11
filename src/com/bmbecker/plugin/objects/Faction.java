@@ -23,6 +23,7 @@ public class Faction {
 		members.add(uuid);
 		leaderUUID = uuid;
 		this.name = name;
+		initial.setCustomName(initial.getCustomName() + " [" + name + "]");
 	}
 	
 	/**

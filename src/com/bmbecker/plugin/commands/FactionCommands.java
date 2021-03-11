@@ -12,11 +12,7 @@ import org.bukkit.entity.Player;
 import com.bmbecker.plugin.objects.Faction;
 import com.bmbecker.plugin.utilities.FactionUtilities;
 
-// IDEA FOR REFACTOR: Have it so it gets UUID on execution and then make functions handle UUID
-
 public class FactionCommands implements CommandExecutor {
-	
-	
 
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
@@ -34,9 +30,27 @@ public class FactionCommands implements CommandExecutor {
 				player.sendMessage("Usage:");
 				player.sendMessage("	/faction <arg>");
 				player.sendMessage("Arguments:");
-				player.sendMessage("	create <name>: create new faction with name <name>.");
+				
+				int factionidx = FactionUtilities.getFactionIndexByPlayer(player);
+				
+				if (factionidx == -1) {
+					player.sendMessage("	create <name>: create new faction with name <name>.");
+					player.sendMessage("	accept <faction>: accept pending invite from faction with name <faction>.");
+					player.sendMessage("	decline <faction>: decline pending invite from faction with name <faction>.");
+				} else {
+					player.sendMessage("	leave: leave current faction.");
+					player.sendMessage("	list: list players in current faction.");
+					
+					if (FactionUtilities.factions.get(factionidx).isLeader(player)) {
+						player.sendMessage("	appoint <name>: appoint member of faction with name <name> to be your faction's new leader.");
+						player.sendMessage("	kick <name>: kick member of faction with name <name> from your faction.");
+						player.sendMessage("	invite <name>: invite player with name <name> to your faction.");
+					}
+				}
+				
+				
+				
 				player.sendMessage("	invite <player>: invite player with name <player>.");
-				player.sendMessage("	leave: leave current faction.");
 
 			} else if (args.length == 1) { // Faction command has one argument (leave)
 				if (args[0].equalsIgnoreCase("leave")) { // Player wants to leave their faction
@@ -202,25 +216,27 @@ public class FactionCommands implements CommandExecutor {
 					player.sendMessage("Invite sent.");
 				} else if (args[0].equalsIgnoreCase("accept")) {
 					
-					if (FactionUtilities.inFaction(player)) { // Player is already in a faction
+					int factionidx = FactionUtilities.getFactionIndexByName(args[1]);
+					
+					if (factionidx != -1) { // Player is already in a faction
 						player.sendMessage("You are already in a faction.");
 						return true;
 					}
 					
-					int factionIdx = FactionUtilities.getFactionIndexByName(args[1]);
+					
 
-					if (factionIdx == -1) {
+					if (factionidx == -1) {
 						player.sendMessage("Faction not found.");
 						return true;
 					}
 
-					if (!FactionUtilities.factions.get(factionIdx).isInvited(player)) {
+					if (!FactionUtilities.factions.get(factionidx).isInvited(player)) {
 						player.sendMessage("You have not received an invite from " + args[1]);
 						return true;
 					}
 
-					player.sendMessage("You have been added to the faction " + FactionUtilities.factions.get(factionIdx).getName());
-					Bukkit.getPlayer(FactionUtilities.factions.get(factionIdx).getLeaderUUID()).sendMessage("Player " + player.getName() + " has accepted your faction invitation.");
+					player.sendMessage("You have been added to the faction " + FactionUtilities.factions.get(factionidx).getName());
+					Bukkit.getPlayer(FactionUtilities.factions.get(factionidx).getLeaderUUID()).sendMessage("Player " + player.getName() + " has accepted your faction invitation.");
 				} else if (args[0].equalsIgnoreCase("decline")) {
 					
 					if (FactionUtilities.inFaction(player)) { // Player is already in a faction
@@ -228,22 +244,22 @@ public class FactionCommands implements CommandExecutor {
 						return true;
 					}
 					
-					int factionIdx = FactionUtilities.getFactionIndexByName(args[1]);
+					int factionidx = FactionUtilities.getFactionIndexByName(args[1]);
 					
-					if (factionIdx == -1) {
+					if (factionidx == -1) {
 						player.sendMessage("Faction not found.");
 						return true;
 					}
 					
-					if (!FactionUtilities.factions.get(factionIdx).isInvited(player)) {
+					if (!FactionUtilities.factions.get(factionidx).isInvited(player)) {
 						player.sendMessage("You have not received an invite from " + args[1]);
 						return true;
 					}
 					
-					FactionUtilities.factions.get(factionIdx).removeInvite(player);
+					FactionUtilities.factions.get(factionidx).removeInvite(player);
 					
-					player.sendMessage("You have declined the invite from " + FactionUtilities.factions.get(factionIdx).getName());
-					Bukkit.getPlayer(FactionUtilities.factions.get(factionIdx).getLeaderUUID()).sendMessage(player.getName() + " has declined your invitation");
+					player.sendMessage("You have declined the invite from " + FactionUtilities.factions.get(factionidx).getName());
+					Bukkit.getPlayer(FactionUtilities.factions.get(factionidx).getLeaderUUID()).sendMessage(player.getName() + " has declined your invitation");
 					
 				}
 			}

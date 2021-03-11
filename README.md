@@ -1,6 +1,7 @@
 # JacksaFactions
 #### A faction plugin made for the Jacksa Minecraft Server
 ---
+####Commands:
 ##### General Commands:
 * `/faction create [name]`: Creates a new faction with the caller as the leader and the name as `[name]`.
 * `/faction accept [faction]`: Accept invite from faction `[faction]`.
