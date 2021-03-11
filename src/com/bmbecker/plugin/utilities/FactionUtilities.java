@@ -1,8 +1,6 @@
 package com.bmbecker.plugin.utilities;
 
 import java.util.ArrayList;
-import java.util.UUID;
-
 import org.bukkit.entity.Player;
 
 import com.bmbecker.plugin.objects.Faction;
@@ -21,7 +19,7 @@ public class FactionUtilities {
 	 * @param member
 	 * @return
 	 */
-	public static int getFactionIndex(Player player) {
+	public static int getFactionIndexByPlayer(Player player) {
 		for (int i = 0; i < factions.size(); i++) {
 			if (factions.get(i).isInFaction(player)) {
 				return i;
@@ -38,5 +36,23 @@ public class FactionUtilities {
 			}
 		}
 		return false;
+	}
+
+	public static boolean nameAvailable(String name) {
+		for (Faction f : factions) {
+			if (f.getName().equals(name)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	public static int getFactionIndexByName(String name) {
+		for (int i = 0; i < factions.size(); i++) {
+			if (factions.get(i).getName().equals(name)) {
+				return i;
+			}
+		}
+		return -1;
 	}
 }
