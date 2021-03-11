@@ -1,5 +1,6 @@
 package com.bmbecker.plugin.commands;
 
+import java.util.Iterator;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
@@ -39,12 +40,13 @@ public class FactionCommands implements CommandExecutor {
 
 			} else if (args.length == 1) { // Faction command has one argument (leave)
 				if (args[0].equalsIgnoreCase("leave")) { // Player wants to leave their faction
-					if (!FactionUtilities.inFaction(player)) { // Player is not in a faction
+					
+					int factionidx = FactionUtilities.getFactionIndexByPlayer(player);
+					
+					if (factionidx == -1) { // Player is not in a faction
 						player.sendMessage("You are not in a faction.");
 						return true;
 					}
-					
-					int factionidx = FactionUtilities.getFactionIndexByPlayer(player);
 					
 					if (FactionUtilities.factions.get(factionidx).isLeader(player)) { // if player leaving is the leader, we have to make a new one
 						UUID nextLeaderUUID = FactionUtilities.factions.get(factionidx).getNextLeaderUUID();
@@ -61,6 +63,26 @@ public class FactionCommands implements CommandExecutor {
 					} else {
 						FactionUtilities.factions.get(factionidx).removeMember(player);
 						player.sendMessage("You have left your faction.");
+					}
+				} else if (args[0].equalsIgnoreCase("list")) {
+					int factionidx = FactionUtilities.getFactionIndexByPlayer(player);
+					
+					if (factionidx == -1) { // Player is not in a faction
+						player.sendMessage("You are not in a faction.");
+						return true;
+					}
+					
+					Iterator<UUID> memberIterator = FactionUtilities.factions.get(factionidx).memberIterator();
+					
+					player.sendMessage("Members of your faction:");
+					
+					while (memberIterator.hasNext()) {
+						Player member = Bukkit.getPlayer(memberIterator.next());
+						if (FactionUtilities.factions.get(factionidx).isLeader(member)) {
+							player.sendMessage("	" + Bukkit.getPlayer(memberIterator.next()).getName() + " [leader]");
+						} else {
+							player.sendMessage("	" + Bukkit.getPlayer(memberIterator.next()).getName());
+						}
 					}
 				}
 			} else if (args.length == 2) { // Faction command has two arguments (invite [player])

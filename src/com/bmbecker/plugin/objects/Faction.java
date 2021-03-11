@@ -102,4 +102,8 @@ public class Faction {
 		return null;
 	}
 	
+	public Iterator<UUID> memberIterator() {
+		return members.iterator();
+	}
+	
 }
