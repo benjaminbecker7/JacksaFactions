@@ -1,7 +1,7 @@
 name: JacksaFactions
 author: benjaminbecker7
 main: com.bmbecker.plugin.JacksaFactions
-version: 1.0
+version: 1.1
 api-version: 1.16
 depend: [WorldGuard]
 commands:

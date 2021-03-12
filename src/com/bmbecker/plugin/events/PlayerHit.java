@@ -21,6 +21,10 @@ public class PlayerHit implements Listener {
 	
 	@EventHandler
 	public void onHit(EntityDamageByEntityEvent e) {
+		if (!(e.getDamager() instanceof Player) || !(e.getEntity() instanceof Player)) {
+			return;
+		}
+		
 		Player damager = (Player) e.getDamager();
 		Player damagee = (Player) e.getEntity();
 		
