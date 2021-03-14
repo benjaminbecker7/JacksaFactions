@@ -22,6 +22,8 @@ import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
 
 public class FactionCommands implements CommandExecutor {
+	
+	//TODO: Add claim command that user can use to add chunks to their domain. checks if chunk is in claimedChunks hashset
 
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {

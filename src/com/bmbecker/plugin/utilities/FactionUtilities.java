@@ -1,8 +1,11 @@
 package com.bmbecker.plugin.utilities;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+
 import org.bukkit.entity.Player;
 
+import com.bmbecker.plugin.objects.ClaimedChunk;
 import com.bmbecker.plugin.objects.Faction;
 
 /**
@@ -13,6 +16,7 @@ import com.bmbecker.plugin.objects.Faction;
 public class FactionUtilities {
 	
 	public static ArrayList<Faction> factions = new ArrayList<Faction>();
+	public static HashSet<ClaimedChunk> claimedChunks = new HashSet<ClaimedChunk>();
 	
 	/**
 	 * Look up faction index by player UUID

@@ -11,10 +11,11 @@ public class Faction {
 	private UUID leaderUUID;
 	private HashSet<UUID> members;
 	private HashSet<UUID> invitees;
+	private Domain domain; // object tracks chunks owned by faction
 	
 	/**
-	 * Creates a new party with an initial player
-	 * @param initial the player who creates the party
+	 * Creates a new faction with an initial player
+	 * @param initial the player who creates the faction
 	 */
 	public Faction(Player initial, String name) {
 		members = new HashSet<UUID>();
@@ -27,9 +28,9 @@ public class Faction {
 	}
 	
 	/**
-	 * Adds a new player to the party
+	 * Adds a new player to the faction
 	 * Add faction name to player name
-	 * @param joiner the player who is joining the party
+	 * @param joiner the player who is joining the faction
 	 */
 	public void addMember(Player joiner) {
 		UUID joinerUUID = joiner.getUniqueId();
@@ -105,6 +106,22 @@ public class Faction {
 	
 	public Iterator<UUID> memberIterator() {
 		return members.iterator();
+	}
+	
+	public void addChunks() {
+		
+	}
+	
+	public int getMaxChunks() {
+		return members.size() * 10;
+	}
+	
+	public int getNumChunks() {
+		return domain.size();
+	}
+	
+	public boolean hasMaxChunks() {
+		return getNumChunks() == getMaxChunks();
 	}
 	
 }
