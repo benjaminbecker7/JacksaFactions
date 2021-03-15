@@ -5,12 +5,14 @@ import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Chunk;
 import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import com.bmbecker.plugin.objects.ClaimedChunk;
 import com.bmbecker.plugin.objects.Faction;
 import com.bmbecker.plugin.utilities.FactionUtilities;
 import com.bmbecker.plugin.utilities.WorldGuardUtilities;
@@ -22,8 +24,6 @@ import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
 
 public class FactionCommands implements CommandExecutor {
-	
-	//TODO: Add claim command that user can use to add chunks to their domain. checks if chunk is in claimedChunks hashset
 
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
@@ -45,7 +45,7 @@ public class FactionCommands implements CommandExecutor {
 				int factionidx = FactionUtilities.getFactionIndexByPlayer(player);
 				
 				if (factionidx == -1) {
-					player.sendMessage("create <name>: create new faction with name <name>.");
+					player.sendMessage("create <name>: create new faction with name <name>. Names can be a max of 8 characters.");
 					player.sendMessage("accept <faction>: accept pending invite from faction with name <faction>.");
 					player.sendMessage("decline <faction>: decline pending invite from faction with name <faction>.");
 				} else {
@@ -56,6 +56,8 @@ public class FactionCommands implements CommandExecutor {
 						player.sendMessage("appoint <name>: appoint member of faction with name <name> to be your faction's new leader.");
 						player.sendMessage("kick <name>: kick member of faction with name <name> from your faction.");
 						player.sendMessage("invite <name>: invite player with name <name> to your faction.");
+						player.sendMessage("claim: claim the chunk you are in for your faction.");
+						player.sendMessage("unclaim: remove the chunk you are in from your faction's domain.");
 					}
 				}
 
@@ -76,6 +78,7 @@ public class FactionCommands implements CommandExecutor {
 						FactionUtilities.factions.get(factionidx).removeMember(player);
 						
 						if (nextLeaderUUID == null) { // if there are no more members in line for leader, destroy the faction
+							FactionUtilities.claimedChunks.removeAll(FactionUtilities.factions.get(factionidx).getDomain().getChunks());
 							FactionUtilities.factions.remove(factionidx);
 						}
 						
@@ -105,6 +108,64 @@ public class FactionCommands implements CommandExecutor {
 							player.sendMessage(member.getName());
 						}
 					}
+				} else if (args[0].equalsIgnoreCase("claim")) { // allows leader to claim current chunk they are standing in 
+					int factionidx = FactionUtilities.getFactionIndexByPlayer(player);
+					
+					if (factionidx == -1) {
+						player.sendMessage("You are not in a faction.");
+						return true;
+					}
+					
+					if (!FactionUtilities.factions.get(factionidx).isLeader(player)) {
+						player.sendMessage("You are not the leader of your faction.");
+						return true;
+					}
+					
+					if (FactionUtilities.factions.get(factionidx).getNumChunks() == FactionUtilities.factions.get(factionidx).getMaxChunks()) {
+						player.sendMessage("Your faction has reached its max number of chunk claims. Add more members to increase the amount you can claim.");
+						return true;
+					}
+					
+					Chunk currChunk = player.getLocation().getChunk();
+					ClaimedChunk dummyChunk = ClaimedChunk.parseClaimedChunk(currChunk);
+					
+					if (FactionUtilities.claimedChunks.contains(dummyChunk)) {
+						player.sendMessage("This chunk has already been claimed.");
+						return true;
+					}
+					
+					FactionUtilities.factions.get(factionidx).addChunk(dummyChunk);
+					FactionUtilities.claimedChunks.add(dummyChunk);
+					
+					player.sendMessage("You have claimed chunk in world \"" + dummyChunk.getWorld() + "\" at position X: " + dummyChunk.getX() + ", Z: " + dummyChunk.getZ() + " for your faction.");
+				
+				} else if (args[0].equalsIgnoreCase("unclaim")) {
+					int factionidx = FactionUtilities.getFactionIndexByPlayer(player);
+					
+					if (factionidx == -1) {
+						player.sendMessage("You are not in a faction.");
+						return true;
+					}
+					
+					if (!FactionUtilities.factions.get(factionidx).isLeader(player)) {
+						player.sendMessage("You are not the leader of your faction.");
+						return true;
+					}
+					
+					Chunk currChunk = player.getLocation().getChunk();
+					
+					if (!FactionUtilities.factions.get(factionidx).getDomain().inDomain(currChunk)) { // idea for refactor: have function for inDomain that takes in ClaimedCunk object so we can parse beforehand
+						player.sendMessage("Your faction does not own this chunk.");
+						return true;
+					}
+					
+					ClaimedChunk dummyChunk = ClaimedChunk.parseClaimedChunk(currChunk);
+					
+					FactionUtilities.factions.get(factionidx).removeChunk(dummyChunk);
+					FactionUtilities.claimedChunks.remove(dummyChunk);
+					
+					player.sendMessage("You have removed chunk in world \"" + dummyChunk.getWorld() + "\" at position X: " + dummyChunk.getX() + ", Z: " + dummyChunk.getZ() + " from your faction.");
+
 				}
 			} else if (args.length == 2) { // Faction command has two arguments (invite [player])
 				if (args[0].equalsIgnoreCase("create")) { // Player creates new faction

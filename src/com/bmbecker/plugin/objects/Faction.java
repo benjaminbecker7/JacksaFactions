@@ -13,6 +13,8 @@ public class Faction {
 	private HashSet<UUID> invitees;
 	private Domain domain; // object tracks chunks owned by faction
 	
+	// REFACTOR: Could have function to determine if chunk is in faction's domain
+	
 	/**
 	 * Creates a new faction with an initial player
 	 * @param initial the player who creates the faction
@@ -21,10 +23,15 @@ public class Faction {
 		members = new HashSet<UUID>();
 		
 		UUID uuid = initial.getUniqueId();
+		
+		this.members = new HashSet<UUID>();
 		members.add(uuid);
 		leaderUUID = uuid;
 		this.name = name;
-		initial.setCustomName(initial.getCustomName() + " [" + name + "]");
+		
+		this.invitees = new HashSet<UUID>();
+		initial.setDisplayName("[" + name + "]" + initial.getDisplayName());
+		this.domain = new Domain();
 	}
 	
 	/**
@@ -39,12 +46,12 @@ public class Faction {
 			return;
 		}
 		invitees.remove(joinerUUID);
-		joiner.setCustomName(joiner.getCustomName() + " [" + name + "]");
+		joiner.setDisplayName("[" + name + "]" + joiner.getDisplayName());
 		members.add(joinerUUID);
 	}
 	
 	public void removeMember(Player leaver) {
-		leaver.setCustomName(leaver.getCustomName().substring(0, leaver.getCustomName().length() - 3 - name.length()));
+		leaver.setDisplayName(leaver.getDisplayName().substring(name.length() + 2));
 		members.remove(leaver.getUniqueId());
 	}
 
@@ -108,8 +115,16 @@ public class Faction {
 		return members.iterator();
 	}
 	
-	public void addChunks() {
-		
+	public void addChunk(ClaimedChunk newChunk) {
+		domain.addChunk(newChunk);
+	}
+	
+	public boolean removeChunk(ClaimedChunk remChunk) {
+		return domain.removeChunk(remChunk);
+	}
+	
+	public Domain getDomain() {
+		return domain;
 	}
 	
 	public int getMaxChunks() {

@@ -4,16 +4,13 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.bukkit.Chunk;
-import org.bukkit.plugin.java.JavaPlugin;
 
 public class Domain {
 	private int size;
 	
-	private final JavaPlugin javaPlugin;
 	private final Set<ClaimedChunk> chunks;
 	
-	public Domain(JavaPlugin javaPlugin) {
-		this.javaPlugin = javaPlugin;
+	public Domain() {
 		this.chunks = new HashSet<>();
 		this.size = 0;
 	}
@@ -24,20 +21,26 @@ public class Domain {
 	
 	public void addChunk(ClaimedChunk chunk) {
 		chunks.add(chunk);
+		size ++;
+	}
+	
+	public boolean removeChunk(ClaimedChunk chunk) {
+		if(chunks.remove(chunk)) {
+			size --;
+			return true;
+		} else {
+			return false;
+		}
 	}
 	
 	public Set<ClaimedChunk> getChunks() {
 		return chunks;
 	}
 	
-	public ClaimedChunk getChunk(Chunk chunk) {
-		for (ClaimedChunk claimed : chunks) {
-			Chunk chunkClaimed = javaPlugin.getServer().getWorld(claimed.getWorld()).getChunkAt(claimed.getX(), claimed.getZ());
-			if (chunkClaimed.equals(chunk)) {
-				return claimed;
-			}
-		}
+	public boolean inDomain(Chunk chunk) {
 		
-		return null;
+		ClaimedChunk dummyChunk = ClaimedChunk.parseClaimedChunk(chunk);
+		
+		return chunks.contains(dummyChunk);
 	}
 }
