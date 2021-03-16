@@ -1,7 +1,8 @@
 package com.bmbecker.plugin;
 
 import com.bmbecker.plugin.commands.FactionCommands;
-import com.bmbecker.plugin.events.PlayerHit;
+import com.bmbecker.plugin.events.ChunkListener;
+import com.bmbecker.plugin.events.PlayerHitListener;
 import com.bmbecker.plugin.utilities.WorldGuardUtilities;
 
 import org.bukkit.ChatColor;
@@ -11,7 +12,7 @@ public class JacksaFactions extends JavaPlugin {
 	
 	@Override
 	public void onLoad() {
-		WorldGuardUtilities.createFlag(); // have to create FACTION_PVP flag before WorldGuard is enabled
+		WorldGuardUtilities.createFlags(); // have to create FACTION_PVP flag before WorldGuard is enabled
 	}
 	
 	// Enabled method
@@ -19,7 +20,8 @@ public class JacksaFactions extends JavaPlugin {
 	public void onEnable() {
 		getServer().getConsoleSender().sendMessage(ChatColor.GREEN + "[JacksaFactions]: Plugin enabled");
 		getCommand("faction").setExecutor(new FactionCommands());
-		getServer().getPluginManager().registerEvents(new PlayerHit(), this);
+		getServer().getPluginManager().registerEvents(new PlayerHitListener(), this);
+		getServer().getPluginManager().registerEvents(new ChunkListener(), this);
 	}
 	
 	// Disable method

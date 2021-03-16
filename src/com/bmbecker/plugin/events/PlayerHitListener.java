@@ -8,16 +8,18 @@ import com.sk89q.worldguard.WorldGuard;
 import com.sk89q.worldguard.protection.ApplicableRegionSet;
 import com.sk89q.worldguard.protection.flags.StateFlag;
 import com.sk89q.worldguard.protection.managers.RegionManager;
+import com.sk89q.worldguard.protection.regions.ProtectedCuboidRegion;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 
-import java.util.ArrayList;
+import java.util.Iterator;
 
+import org.bukkit.Chunk;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
-public class PlayerHit implements Listener {
+public class PlayerHitListener implements Listener {
 	
 	@EventHandler
 	public void onHit(EntityDamageByEntityEvent e) {
@@ -29,14 +31,18 @@ public class PlayerHit implements Listener {
 		Player damagee = (Player) e.getEntity();
 		
 		// CHECK IF PLAYERS ARE IN A FACTION_PVP ZONE. IF YES, HITS WILL STILL REGISTER.
+		Chunk currChunk = damager.getLocation().getChunk();
+		int bx = currChunk.getX() << 4;
+		int bz = currChunk.getZ() << 4;
+		BlockVector3 pt1 = BlockVector3.at(bx, 0, bz);
+		BlockVector3 pt2 = BlockVector3.at(bx + 15, 256, bz + 15);
+		ProtectedCuboidRegion region = new ProtectedCuboidRegion("ID", pt1, pt2);
 		RegionManager regions = WorldGuard.getInstance().getPlatform().getRegionContainer().get(BukkitAdapter.adapt(damager.getWorld()));
-		BlockVector3 loc = BukkitAdapter.asBlockVector(damager.getLocation());
 		
-		ApplicableRegionSet regionSet = regions.getApplicableRegions(loc);
-		@SuppressWarnings("unchecked")
-		ArrayList<ProtectedRegion> appRegions = (ArrayList<ProtectedRegion>) regionSet.iterator();
+		ApplicableRegionSet regionSet = regions.getApplicableRegions(region);
+		Iterator<ProtectedRegion> appRegions = regionSet.iterator();
 		
-		if (appRegions.size() == 1 && appRegions.get(0).getFlag(WorldGuardUtilities.FACTION_PVP) == StateFlag.State.DENY) {
+		if (appRegions.hasNext() && appRegions.next().getFlag(WorldGuardUtilities.FACTION_PVP) == StateFlag.State.ALLOW) {
 			return;
 		}
 		

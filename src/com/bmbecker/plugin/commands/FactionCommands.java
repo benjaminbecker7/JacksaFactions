@@ -11,15 +11,17 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-
 import com.bmbecker.plugin.objects.ClaimedChunk;
 import com.bmbecker.plugin.objects.Faction;
 import com.bmbecker.plugin.utilities.FactionUtilities;
 import com.bmbecker.plugin.utilities.WorldGuardUtilities;
 import com.sk89q.worldedit.bukkit.BukkitAdapter;
+import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldguard.WorldGuard;
+import com.sk89q.worldguard.protection.ApplicableRegionSet;
 import com.sk89q.worldguard.protection.flags.StateFlag;
 import com.sk89q.worldguard.protection.managers.RegionManager;
+import com.sk89q.worldguard.protection.regions.ProtectedCuboidRegion;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
 
@@ -33,7 +35,7 @@ public class FactionCommands implements CommandExecutor {
 		
 		Player player = (Player) sender;
 		
-		// 
+		// Overarching command
 		if (cmd.getName().equalsIgnoreCase("faction")) {
 			if (args.length == 0) {
 
@@ -67,7 +69,7 @@ public class FactionCommands implements CommandExecutor {
 					int factionidx = FactionUtilities.getFactionIndexByPlayer(player);
 					
 					if (factionidx == -1) { // Player is not in a faction
-						player.sendMessage("You are not in a faction.");
+						player.sendMessage(ChatColor.RED + "You are not in a faction.");
 						return true;
 					}
 					
@@ -92,7 +94,7 @@ public class FactionCommands implements CommandExecutor {
 					int factionidx = FactionUtilities.getFactionIndexByPlayer(player);
 					
 					if (factionidx == -1) { // Player is not in a faction
-						player.sendMessage("You are not in a faction.");
+						player.sendMessage(ChatColor.RED + "You are not in a faction.");
 						return true;
 					}
 					
@@ -112,25 +114,43 @@ public class FactionCommands implements CommandExecutor {
 					int factionidx = FactionUtilities.getFactionIndexByPlayer(player);
 					
 					if (factionidx == -1) {
-						player.sendMessage("You are not in a faction.");
+						player.sendMessage(ChatColor.RED + "You are not in a faction.");
 						return true;
 					}
 					
 					if (!FactionUtilities.factions.get(factionidx).isLeader(player)) {
-						player.sendMessage("You are not the leader of your faction.");
+						player.sendMessage(ChatColor.RED + "You are not the leader of your faction.");
+						return true;
+					}
+					
+
+					// CHECK IF PLAYER IS IN A FACTION_CLAIMABLE ZONE. IF NO, PLAYER CANNOT CLAIM
+					Chunk currChunk = player.getLocation().getChunk();
+					int bx = currChunk.getX() << 4;
+					int bz = currChunk.getZ() << 4;
+					BlockVector3 pt1 = BlockVector3.at(bx, 0, bz);
+					BlockVector3 pt2 = BlockVector3.at(bx + 15, 256, bz + 15);
+					ProtectedCuboidRegion region = new ProtectedCuboidRegion("ID", pt1, pt2);
+					RegionManager regions = WorldGuard.getInstance().getPlatform().getRegionContainer().get(BukkitAdapter.adapt(player.getWorld()));
+					
+					ApplicableRegionSet regionSet = regions.getApplicableRegions(region);
+					Iterator<ProtectedRegion> appRegions = regionSet.iterator();
+					
+					if (appRegions.hasNext() && appRegions.next().getFlag(WorldGuardUtilities.FACTION_CLAIMABLE) == StateFlag.State.DENY) {
+						player.sendMessage(ChatColor.RED + "This chunk is in an unclaimable region.");
 						return true;
 					}
 					
 					if (FactionUtilities.factions.get(factionidx).getNumChunks() == FactionUtilities.factions.get(factionidx).getMaxChunks()) {
-						player.sendMessage("Your faction has reached its max number of chunk claims. Add more members to increase the amount you can claim.");
+						player.sendMessage(ChatColor.RED + "Your faction has reached its max number of chunk claims. Add more members to increase the amount you can claim.");
 						return true;
 					}
 					
-					Chunk currChunk = player.getLocation().getChunk();
+					
 					ClaimedChunk dummyChunk = ClaimedChunk.parseClaimedChunk(currChunk);
 					
 					if (FactionUtilities.claimedChunks.contains(dummyChunk)) {
-						player.sendMessage("This chunk has already been claimed.");
+						player.sendMessage(ChatColor.RED + "This chunk has already been claimed.");
 						return true;
 					}
 					
@@ -143,19 +163,19 @@ public class FactionCommands implements CommandExecutor {
 					int factionidx = FactionUtilities.getFactionIndexByPlayer(player);
 					
 					if (factionidx == -1) {
-						player.sendMessage("You are not in a faction.");
+						player.sendMessage(ChatColor.RED + "You are not in a faction.");
 						return true;
 					}
 					
 					if (!FactionUtilities.factions.get(factionidx).isLeader(player)) {
-						player.sendMessage("You are not the leader of your faction.");
+						player.sendMessage(ChatColor.RED + "You are not the leader of your faction.");
 						return true;
 					}
 					
 					Chunk currChunk = player.getLocation().getChunk();
 					
 					if (!FactionUtilities.factions.get(factionidx).getDomain().inDomain(currChunk)) { // idea for refactor: have function for inDomain that takes in ClaimedCunk object so we can parse beforehand
-						player.sendMessage("Your faction does not own this chunk.");
+						player.sendMessage(ChatColor.RED + "Your faction does not own this chunk.");
 						return true;
 					}
 					
@@ -171,17 +191,17 @@ public class FactionCommands implements CommandExecutor {
 				if (args[0].equalsIgnoreCase("create")) { // Player creates new faction
 					
 					if (FactionUtilities.inFaction(player)) { // Player is already in a faction
-						player.sendMessage("You are already in a faction.");
+						player.sendMessage(ChatColor.RED + "You are already in a faction.");
 						return true;
 					}
 					
 					if (args[1].length() > 8) {
-						player.sendMessage("Faction names cannot be longer than 8 characters.");
+						player.sendMessage(ChatColor.RED + "Faction names cannot be longer than 8 characters.");
 						return true;
 					}
 
 					if(!FactionUtilities.nameAvailable(args[1])) {
-						player.sendMessage("Faction name " + args[1] + " has already been taken.");
+						player.sendMessage(ChatColor.RED + "Faction name " + args[1] + " has already been taken.");
 						return true;
 					}
 					
@@ -192,24 +212,24 @@ public class FactionCommands implements CommandExecutor {
 					int factionidx = FactionUtilities.getFactionIndexByPlayer(player);
 					
 					if (factionidx == -1) {
-						player.sendMessage("You are not in a faction.");
+						player.sendMessage(ChatColor.RED + "You are not in a faction.");
 						return true;
 					}
 					
 					if (!FactionUtilities.factions.get(factionidx).isLeader(player)) {
-						player.sendMessage("You are not the leader of your faction.");
+						player.sendMessage(ChatColor.RED + "You are not the leader of your faction.");
 						return true;
 					}
 					
 					Player appointee = Bukkit.getPlayerExact(args[1]);
 					
 					if (appointee == null) {
-						player.sendMessage("Player " + args[1] + " not found.");
+						player.sendMessage(ChatColor.RED + "Player " + args[1] + " not found.");
 						return true;
 					}
 					
 					if (!FactionUtilities.factions.get(factionidx).isInFaction(appointee)) {
-						player.sendMessage("Player " + args[1] + " is not in your faction.");
+						player.sendMessage(ChatColor.RED + "Player " + args[1] + " is not in your faction.");
 						return true;
 					}
 					
@@ -222,24 +242,24 @@ public class FactionCommands implements CommandExecutor {
 					int factionidx = FactionUtilities.getFactionIndexByPlayer(player);
 					
 					if (factionidx == -1) {
-						player.sendMessage("You are not in a faction.");
+						player.sendMessage(ChatColor.RED + "You are not in a faction.");
 						return true;
 					}
 					
 					if (!FactionUtilities.factions.get(factionidx).isLeader(player)) {
-						player.sendMessage("You are not the leader of your faction.");
+						player.sendMessage(ChatColor.RED + "You are not the leader of your faction.");
 						return true;
 					}
 					
 					Player removee = Bukkit.getPlayerExact(args[1]);
 					
 					if(removee == null) {
-						player.sendMessage("Player " + args[1] + " not found.");
+						player.sendMessage(ChatColor.RED + "Player " + args[1] + " not found.");
 						return true;
 					}
 					
 					if (!FactionUtilities.factions.get(factionidx).isInFaction(removee)) {
-						player.sendMessage("Player " + args[1] + " is not in your faction.");
+						player.sendMessage(ChatColor.RED + "Player " + args[1] + " is not in your faction.");
 						return true;
 					}
 					
@@ -253,25 +273,25 @@ public class FactionCommands implements CommandExecutor {
 					Player invitee = Bukkit.getPlayerExact(args[1]); // get player specified in invite command
 					
 					if(invitee == null) { // Player not found
-						player.sendMessage("Player " + args[1] + " not found.");
+						player.sendMessage(ChatColor.RED + "Player " + args[1] + " not found.");
 						return true;
 					}
 					
 					if (FactionUtilities.inFaction(invitee)) { // Player already in faction
-						player.sendMessage("Player " + args[1] + " is already in a faction.");
+						player.sendMessage(ChatColor.RED + "Player " + args[1] + " is already in a faction.");
 						return true;
 					}
 					
 					int factionidx = FactionUtilities.getFactionIndexByPlayer(player);
 
 					if (factionidx == -1) {
-						player.sendMessage("You are not in a faction.");
+						player.sendMessage(ChatColor.RED + "You are not in a faction.");
 						return true;
 					} 
 					
 					// arraylist lookups by index are essentially on O(1) and maintains data integrity so that's why we're not using assignment
 					if (!FactionUtilities.factions.get(factionidx).isLeader(player)) { 
-						player.sendMessage("You are not the leader of your faction.");
+						player.sendMessage(ChatColor.RED + "You are not the leader of your faction.");
 						return true;
 					}
 						
@@ -287,7 +307,7 @@ public class FactionCommands implements CommandExecutor {
 					int factionidx = FactionUtilities.getFactionIndexByName(args[1]);
 					
 					if (factionidx != -1) { // Player is already in a faction
-						player.sendMessage("You are already in a faction.");
+						player.sendMessage(ChatColor.RED + "You are already in a faction.");
 						return true;
 					}
 					
@@ -299,7 +319,7 @@ public class FactionCommands implements CommandExecutor {
 					}
 
 					if (!FactionUtilities.factions.get(factionidx).isInvited(player)) {
-						player.sendMessage("You have not received an invite from " + args[1]);
+						player.sendMessage(ChatColor.RED + "You have not received an invite from " + args[1]);
 						return true;
 					}
 
@@ -308,19 +328,19 @@ public class FactionCommands implements CommandExecutor {
 				} else if (args[0].equalsIgnoreCase("decline")) {
 					
 					if (FactionUtilities.inFaction(player)) { // Player is already in a faction
-						player.sendMessage("You are already in a faction.");
+						player.sendMessage(ChatColor.RED + "You are already in a faction.");
 						return true;
 					}
 					
 					int factionidx = FactionUtilities.getFactionIndexByName(args[1]);
 					
 					if (factionidx == -1) {
-						player.sendMessage("Faction not found.");
+						player.sendMessage(ChatColor.RED + "Faction not found.");
 						return true;
 					}
 					
 					if (!FactionUtilities.factions.get(factionidx).isInvited(player)) {
-						player.sendMessage("You have not received an invite from " + args[1]);
+						player.sendMessage(ChatColor.RED + "You have not received an invite from " + args[1]);
 						return true;
 					}
 					
@@ -332,10 +352,11 @@ public class FactionCommands implements CommandExecutor {
 				}
 			} else if (args.length == 4) {
 				
-				if (args[0].equalsIgnoreCase("pvp")) { // Command: /factionOp WorldGuard pvp <worldname> <regionname> ~ disable interfaction nohit protections in region
+				if (args[0].equalsIgnoreCase("pvp")) { // Command: /faction pvp <on/off> <worldname> <regionname> ~ disable interfaction nohit protections in region
 					
 					if(!player.isOp()) { // verify player is op
 						Bukkit.getServer().getConsoleSender().sendMessage(ChatColor.RED + "[JacksaFactions]: Non-Op player " + player.getName() + " tried to call an Op command.");
+						player.sendMessage(ChatColor.RED + "You are not allowed to use this command.");
 						return true;
 					}
 					
@@ -345,21 +366,21 @@ public class FactionCommands implements CommandExecutor {
 						World world = Bukkit.getWorld(args[2]);
 						
 						if (world == null) {
-							player.sendMessage("Could not find world");
+							player.sendMessage(ChatColor.RED + "Could not find world");
 							return true;
 						}
 						
 						RegionManager regions = container.get(BukkitAdapter.adapt(world));
 						
 						if (regions == null) {
-							player.sendMessage("Could not find world");
+							player.sendMessage(ChatColor.RED + "Could not find world");
 							return true;
 						}
 						
 						ProtectedRegion region = regions.getRegion(args[3]);
 						
 						if (region == null) {
-							player.sendMessage("Could not find region");
+							player.sendMessage(ChatColor.RED + "Could not find region");
 							return true;
 						}
 						
@@ -372,21 +393,21 @@ public class FactionCommands implements CommandExecutor {
 						World world = Bukkit.getWorld(args[2]);
 						
 						if (world == null) {
-							player.sendMessage("Could not find world");
+							player.sendMessage(ChatColor.RED + "Could not find world");
 							return true;
 						}
 						
 						RegionManager regions = container.get(BukkitAdapter.adapt(world));
 						
 						if (regions == null) {
-							player.sendMessage("Could not find world");
+							player.sendMessage(ChatColor.RED + "Could not find world");
 							return true;
 						}
 						
 						ProtectedRegion region = regions.getRegion(args[3]);
 						
 						if (region == null) {
-							player.sendMessage("Could not find region");
+							player.sendMessage(ChatColor.RED + "Could not find region");
 							return true;
 						}
 						
@@ -394,7 +415,71 @@ public class FactionCommands implements CommandExecutor {
 						
 						player.sendMessage("Preventing faction pvp in region " + args[3]);
 					}
+				} else if (args[0].equalsIgnoreCase("claimable")) { // Command: /faction claimable <on/off> <worldname> <regionname> ~ disable claiming in region
+					
+					if(!player.isOp()) { // verify player is op
+						Bukkit.getServer().getConsoleSender().sendMessage(ChatColor.RED + "[JacksaFactions]: Non-Op player " + player.getName() + " tried to call an Op command.");
+						player.sendMessage(ChatColor.RED + "You are not allowed to use this command.");
+						return true;
+					}
+					
+					if (args[1].equalsIgnoreCase("on")) {
+						RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
+						
+						World world = Bukkit.getWorld(args[2]);
+						
+						if (world == null) {
+							player.sendMessage(ChatColor.RED + "Could not find world");
+							return true;
+						}
+						
+						RegionManager regions = container.get(BukkitAdapter.adapt(world));
+						
+						if (regions == null) {
+							player.sendMessage(ChatColor.RED + "Could not find world");
+							return true;
+						}
+						
+						ProtectedRegion region = regions.getRegion(args[3]);
+						
+						if (region == null) {
+							player.sendMessage(ChatColor.RED + "Could not find region");
+							return true;
+						}
+						
+						region.setFlag(WorldGuardUtilities.FACTION_CLAIMABLE, StateFlag.State.ALLOW);
+						
+						player.sendMessage("Preventing faction claims in region " + args[3]);
+					} else if (args[1].equalsIgnoreCase("off")) {
+						RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
+						
+						World world = Bukkit.getWorld(args[2]);
+						
+						if (world == null) {
+							player.sendMessage(ChatColor.RED + "Could not find world");
+							return true;
+						}
+						
+						RegionManager regions = container.get(BukkitAdapter.adapt(world));
+						
+						if (regions == null) {
+							player.sendMessage(ChatColor.RED + "Could not find world");
+							return true;
+						}
+						
+						ProtectedRegion region = regions.getRegion(args[3]);
+						
+						if (region == null) {
+							player.sendMessage(ChatColor.RED + "Could not find region");
+							return true;
+						}
+						
+						region.setFlag(WorldGuardUtilities.FACTION_CLAIMABLE, StateFlag.State.DENY);
+						
+						player.sendMessage("Preventing faction claims in region " + args[3]);
+					}
 				}
+				
 			}
 		}
 		

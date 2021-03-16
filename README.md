@@ -1,5 +1,6 @@
 # JacksaFactions
 #### A faction plugin made for the Jacksa Minecraft Server
+
 ---
 
 #### The Faction Model:
@@ -20,7 +21,7 @@
 ##### Domains:
 * Leaders can claim chunks to be in the domain of their faction.
 * One chunk cannot be owned by more than one faction.
-* Only players in a faction can edit the land in its domain.
+* Only players in a faction can edit the land or interact with blocks in its domain.
 * The number of chunks a faction can have in its domain is equal to the number of its members times 10.
 * Leaders can also unclaim chunks if they want to remove a chunk from their domain.
 
@@ -45,4 +46,7 @@
 * `/faction claim`: Claims the chunk the player is currently standing in to be in the faction's domain.
 * `/faction unclaim`: Removes the chunk the player is currently standing in from the faction's domain.
 
+##### Op Commands:
+* `/faction pvp [on/off] [world] [region]`: Sets WorldGuard flags that allow for players from the same faction to hit each other in chunks in world `[world]` containing region with ID `[region]`.
+* `/faction claimable [on/off] [world] [region]`: Sets WorldGuard flags that allow for players to claim land in chunks in world `[world]` containing region with ID `[region]`.
 
