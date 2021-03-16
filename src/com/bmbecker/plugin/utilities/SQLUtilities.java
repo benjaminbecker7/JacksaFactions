@@ -3,6 +3,7 @@ package com.bmbecker.plugin.utilities;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.Statement;
+import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -13,6 +14,12 @@ import com.bmbecker.plugin.objects.Faction;
 
 public class SQLUtilities {
 	
+	/*
+	 * Events where all servers should be updated:
+	 * - faction created
+	 * - 
+	 */
+	
 	private static final String TABLE_FACTIONS = "factions";
 	private static final String TABLE_CLAIMED_CHUNKS = "claimed_chunks";
 	private static final String TABLE_PLAYERS = "players";
@@ -20,6 +27,7 @@ public class SQLUtilities {
 	private static final String SQL_ADDR = Keys.SQL_ADDR;
 	private static final String SQL_USER = Keys.SQL_USER;
 	private static final String SQL_PW = Keys.SQL_PW;
+	
 	private static Connection con;
 	
 	
@@ -77,5 +85,11 @@ public class SQLUtilities {
 			e.printStackTrace();
 		}
 	}
-	
+	/*
+	public static Faction getPlayerFaction(Player p) {
+		UUID playerID = p.getUniqueId();
+		
+		
+	}
+	*/
 }
