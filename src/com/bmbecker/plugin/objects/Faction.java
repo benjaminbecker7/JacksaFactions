@@ -11,7 +11,7 @@ public class Faction {
 	private UUID leaderUUID;
 	private HashSet<UUID> members;
 	private HashSet<UUID> invitees;
-	private Domain domain; // object tracks chunks owned by faction
+	private HashSet<ClaimedChunk> claims;
 	
 	// REFACTOR: Could have function to determine if chunk is in faction's domain
 	
@@ -31,7 +31,8 @@ public class Faction {
 		
 		this.invitees = new HashSet<UUID>();
 		initial.setDisplayName("[" + name + "]" + initial.getDisplayName());
-		this.domain = new Domain();
+		
+		claims = new HashSet<ClaimedChunk>();
 	}
 	
 	/**
@@ -116,15 +117,15 @@ public class Faction {
 	}
 	
 	public void addChunk(ClaimedChunk newChunk) {
-		domain.addChunk(newChunk);
+		claims.add(newChunk);
 	}
 	
 	public boolean removeChunk(ClaimedChunk remChunk) {
-		return domain.removeChunk(remChunk);
+		return claims.remove(remChunk);
 	}
 	
-	public Domain getDomain() {
-		return domain;
+	public HashSet<ClaimedChunk> getClaims() {
+		return claims;
 	}
 	
 	public int getMaxChunks() {
@@ -132,7 +133,7 @@ public class Faction {
 	}
 	
 	public int getNumChunks() {
-		return domain.size();
+		return claims.size();
 	}
 	
 	public boolean hasMaxChunks() {

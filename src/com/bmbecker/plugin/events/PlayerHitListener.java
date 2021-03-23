@@ -1,6 +1,6 @@
 package com.bmbecker.plugin.events;
 
-import com.bmbecker.plugin.utilities.FactionUtilities;
+import com.bmbecker.plugin.utilities.SQLUtilities;
 import com.bmbecker.plugin.utilities.WorldGuardUtilities;
 import com.sk89q.worldedit.bukkit.BukkitAdapter;
 import com.sk89q.worldedit.math.BlockVector3;
@@ -30,7 +30,7 @@ public class PlayerHitListener implements Listener {
 		Player damager = (Player) e.getDamager();
 		Player damagee = (Player) e.getEntity();
 		
-		// CHECK IF PLAYERS ARE IN A FACTION_PVP ZONE. IF YES, HITS WILL STILL REGISTER.
+		// CHECK IF PLAYERS ARE IN A FACTION_PVP ZONE. IF YES, DO NOT WORRY ABOUT FACTIONS, HITS WILL STILL REGISTER.
 		Chunk currChunk = damager.getLocation().getChunk();
 		int bx = currChunk.getX() << 4;
 		int bz = currChunk.getZ() << 4;
@@ -46,7 +46,7 @@ public class PlayerHitListener implements Listener {
 			return;
 		}
 		
-		if (FactionUtilities.factions.get(FactionUtilities.getFactionIndexByPlayer(damager)).isInFaction(damagee)) {
+		if (SQLUtilities.inFaction(SQLUtilities.getPlayerFaction(damager), damagee)) {
 			e.setCancelled(true);
 		}
 	}

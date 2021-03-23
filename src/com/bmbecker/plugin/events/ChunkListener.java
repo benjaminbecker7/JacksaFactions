@@ -1,5 +1,6 @@
 package com.bmbecker.plugin.events;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -9,7 +10,7 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 
 import com.bmbecker.plugin.objects.ClaimedChunk;
-import com.bmbecker.plugin.utilities.FactionUtilities;
+import com.bmbecker.plugin.utilities.SQLUtilities;
 
 //TODO: Should check to see if block is in another faction's domain chunks.
 
@@ -58,15 +59,12 @@ public class ChunkListener implements Listener {
 		
 		// Create dummy ClaimedChunk for comparison
 		Chunk blockChunk = b.getChunk();
-		ClaimedChunk dummyChunk = new ClaimedChunk(blockChunk.getWorld().getName(), blockChunk.getX(), blockChunk.getZ());
+		ClaimedChunk dummyChunk = new ClaimedChunk(Bukkit.getServer().getName(), blockChunk.getWorld().getName(), blockChunk.getX(), blockChunk.getZ());
 		
 		// Determine if block is claimed by a faction but not by player's faction.
-		return FactionUtilities.claimedChunks.contains(dummyChunk) && 
-			!FactionUtilities
-				.factions
-				.get(FactionUtilities.getFactionIndexByPlayer(p))
-				.getDomain()
-				.inDomain(b.getChunk());
+		String chunkFaction = SQLUtilities.getChunkFaction(dummyChunk);
+
+		return chunkFaction != null && chunkFaction.equals(SQLUtilities.getPlayerFaction(p));
 		
 	}
 	
