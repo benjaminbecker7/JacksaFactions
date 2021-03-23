@@ -64,7 +64,7 @@ public class ChunkListener implements Listener {
 		// Determine if block is claimed by a faction but not by player's faction.
 		String chunkFaction = SQLUtilities.getChunkFaction(dummyChunk);
 
-		return chunkFaction != null && chunkFaction.equals(SQLUtilities.getPlayerFaction(p));
+		return chunkFaction != null && !chunkFaction.equals(SQLUtilities.getPlayerFaction(p));
 		
 	}
 	
