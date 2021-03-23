@@ -69,7 +69,7 @@
 * WorldGuard: For flag setting and region control.
 * MySQL: For MySQL and MariaDB database connections. Allows for multiple servers to use the same faction data at the same time.
 	<ul>
-	<li>If the MySQL plugin pushes any error notifications to the console,  **please immediately contact me** because that means there is a critical bug in the syntax.</li>
+	<li>If the MySQL plugin pushes any error notifications to the console,  <strong>please immediately contact me</strong> because that means there is a critical bug in the syntax.</li>
 	<ul>
 
 
