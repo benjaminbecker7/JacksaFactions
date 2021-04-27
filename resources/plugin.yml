@@ -1,0 +1,20 @@
+name: JacksaFactions
+author: benjaminbecker7
+main: com.bmbecker.plugin.JacksaFactions
+version: 3.0.0
+api-version: 1.16
+depend: [WorldGuard]
+commands:
+  faction:
+    description: Commands for factions
+    usage: /<command> [accept|appoint|claim|create|decline|invite|invitenear|kick|leave|list|unclaim]
+    aliases: [f]
+  fadmin:
+    description: Commands for server admins
+    usage: /<command> [pvp|claimable] [on|off]
+    permission: perms.admin
+    permission-message: You do not have permission to use this command
+permissions:
+  perms.admin:
+    description: Permission for faction admin command
+    default: op
