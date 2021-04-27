@@ -75,7 +75,7 @@ This plugin requires a MySQL database to maintain faction data across servers.
 
 The servers using this plugin should specify the SQL connection details in the config.yml generated when the plugin is run for the first time.
 
-Furthermore, the SQL Database schema must be configured to have the following tables in its database:
+Furthermore, the SQL Database must be configured to have the following tables in its database:
 
 **factions**
 | name       | leader      | numclaims | maxclaims | homeServer  | homeWorld   | homeX    | homeY    | homeZ    |
