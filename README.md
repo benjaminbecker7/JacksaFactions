@@ -20,8 +20,8 @@
 	* Members can also leave their faction and list the names of the members of their faction.
 	* Members are not allowed to hit one another unless in regions flagged by ops with `FACTION_PVP`.
 * Faction leaders can set permissions for faction members within their factions.
-  * If a leader turns on the `canclaim` permission for a faction member, that member can claim and unclaim land for their faction.
-  * If a leader turns on the `caninvite` permission for a faction member, that member can invite people to their faction.
+  * If a leader turns on the `claim` permission for a faction member, that member can claim and unclaim land for their faction.
+  * If a leader turns on the `invite` permission for a faction member, that member can invite people to their faction.
 ##### Domains:
 * Leaders can claim chunks to be in the domain of their faction.
 * One chunk cannot be owned by more than one faction.
@@ -32,7 +32,11 @@
 ---
 
 #### Commands:
+
+Alias: can use either `/faction <arg(s)>` or `/f <arg(s)>` to execute the general commands.
+
 ##### General Commands:
+* `/faction help`: Displays the argument formats and descriptions of commands in the plugin.
 * `/faction create [name]`: Creates a new faction with the caller as the leader and the name as `[name]`.
 * `/faction accept`: Accept invite from faction currently inviting the player.
 * `/faction decline`: Decline invite from faction currently inviting the player.
@@ -43,14 +47,47 @@
 	* If caller is leader and there are no other members, it destroys the faction.
 	* When a player leaves, the maximum number of claims for their faction is subtracted by 10. If the faction currently owns more claims than the new maximum, then claims are deleted until the number matches the new maximum.
 * `/faction list`: Command for player to list members of caller's current faction.
+* `/faction home`: Command for player to teleport to the home location set by the leader. If player is in a different server, BungeeCord moves the player to the home location's server.
 
 ##### Leader Commands:
-* `/faction invite [name]`: Invites player with name `[name]` to join the caller's faction. Callable by faction leader.
 * `/faction kick [name]`: Kicks player with name `[name]` from faction.
 * `/faction appoint [name]`: Appoints the player in faction with name `[name]` as the new leader.
-* `/faction claim`: Claims the chunk the player is currently standing in to be in the faction's domain.
-* `/faction unclaim`: Removes the chunk the player is currently standing in from the faction's domain.
+* `/faction permit [claim/invite] [on/off] [name]`: Sets ability for faction member with name `[name]` to claim/unclaim land or invite players to the faction.
+* `/faction sethome`: Sets the home location for the faction. Home location must be in one of the faction's chunks.
 
-##### Op Commands:
-* `/faction pvp [on/off] [world] [region]`: Sets WorldGuard flags that allow for players from the same faction to hit each other in chunks in world `[world]` containing region with ID `[region]`.
-* `/faction claimable [on/off] [world] [region]`: Sets WorldGuard flags that allow for players to claim land in chunks in world `[world]` containing region with ID `[region]`.
+##### Permitted Commands (Leaders are automatically given full permissions):
+* For players with `claim` permission:
+	* `/faction claim`: Claims the chunk the player is currently standing in to be in the faction's domain.
+	* `/faction unclaim`: Removes the chunk the player is currently standing in from the faction's domain.
+* For players with `invite` permission:
+	* `/faction invite [name]`: Invites player with name `[name]` to join the caller's faction. Callable by faction leader.
+	* `/faction invitenear`: Opens up a GUI menu of players not in factions within 10 meter radius.
+
+##### Op Commands (note that the base command for Op commands are `/fadmin`):
+* `/fadmin pvp [on/off] [world] [region]`: Sets WorldGuard flags that allow for players from the same faction to hit each other in chunks in world `[world]` containing region with ID `[region]`.
+* `/fadmin claimable [on/off] [world] [region]`: Sets WorldGuard flags that allow for players to claim land in chunks in world `[world]` containing region with ID `[region]`.
+
+---
+
+#### SQL Server Specifications:
+
+This plugin requires a MySQL database to maintain faction data across servers.
+
+The servers using this plugin should specify the SQL connection details in the config.yml generated when the plugin is run for the first time.
+
+Furthermore, the SQL Database schema must be configured to have the following tables in its database:
+
+**factions**
+| name       | leader      | numclaims | maxclaims | homeServer  | homeWorld   | homeX    | homeY    | homeZ    |
+|------------|-------------|-----------|-----------|-------------|-------------|----------|----------|----------|
+| VARCHAR(8) | VARCHAR(36) | INT(255)  | INT(255)  | VARCHAR(50) | VARCHAR(50) | INT(255) | INT(255) | INT(255) |
+
+**players**
+| id          | faction    | invite     | canInvite | canClaim |
+|-------------|------------|------------|-----------|----------|
+| VARCHAR(36) | VARCHAR(8) | VARCHAR(8) | BOOLEAN   | BOOLEAN  |
+
+**claimed_chunks**
+| server      | world       | x        | z        | faction    |
+|-------------|-------------|----------|----------|------------|
+| VARCHAR(50) | VARCHAR(50) | INT(255) | INT(255) | VARCHAR(8) |
