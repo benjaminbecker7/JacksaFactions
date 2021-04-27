@@ -28,6 +28,7 @@
 * Only players in a faction can edit the land or interact with blocks in its domain.
 * The number of chunks a faction can have in its domain is equal to the number of its members times 10.
 * Leaders can also unclaim chunks if they want to remove a chunk from their domain.
+* Leaders can set the faction home location in their domain. When the plugin removes claimed chunks if members leave the faction, the chunk that contains the fa tion home location will be the last one to be removed.
 
 ---
 
